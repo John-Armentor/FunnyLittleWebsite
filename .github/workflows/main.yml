@@ -10,6 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: List contents of the root
+        run: ls -la
+      - name: List contents of the first FunnyLittleWebsite directory
+        run: ls -la FunnyLittleWebsite/
+      - name: List contents of the nested FunnyLittleWebsite directory
+        run: ls -la FunnyLittleWebsite/FunnyLittleWebsite/
       - name: Build Docker Image
         run: docker build ./FunnyLittleWebsite/FunnyLittleWebsite -t funnylittlewebsite:latest
       - name: Save Docker Image
