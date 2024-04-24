@@ -14,11 +14,13 @@ jobs:
         run: docker build ./FunnyLittleWebsite -t funnylittlewebsite:latest
       - name: Save Docker Image
         run: docker save funnylittlewebsite:latest | gzip > funnylittlewebsite.tar.gz
-      - name: Debug SSH Key Start
+      - name: Debug SSH Key Parts
+        run: |
+          echo "SSH key start: ${SSH_KEY:0:100}"
+          echo "SSH key middle: ${SSH_KEY:100:100}"
+          echo "SSH key end: ${SSH_KEY:-100}"
         env:
           SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
-        run: |
-          echo "SSH key first 100 characters: ${SSH_KEY:0:100}"  # Show start of the key to confirm it's loaded
       - name: Upload Docker Image to Server
         uses: appleboy/scp-action@master
         with:
