@@ -14,30 +14,22 @@ jobs:
         run: docker build ./FunnyLittleWebsite -t funnylittlewebsite:latest
       - name: Save Docker Image
         run: docker save funnylittlewebsite:latest | gzip > funnylittlewebsite.tar.gz
-      - name: Debug SSH Key Parts
+      - name: Decode SSH Key
         run: |
-          echo "SSH key start: ${SSH_KEY:0:100}"
-          echo "SSH key middle: ${SSH_KEY:100:100}"
-          echo "SSH key end: ${SSH_KEY:-100}"
+          mkdir -p ${{ runner.temp }}/ssh
+          echo "${{ secrets.SERVER_SSH_KEY_BASE64 }}" | base64 --decode > ${{ runner.temp }}/ssh/id_rsa
+          chmod 600 ${{ runner.temp }}/ssh/id_rsa
         env:
-          SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          SERVER_SSH_KEY_BASE64: ${{ secrets.SERVER_SSH_KEY_BASE64 }}
       - name: Upload Docker Image to Server
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
+          key: ${{ runner.temp }}/ssh/id_rsa
           port: 22
           source: "funnylittlewebsite.tar.gz"
           target: "/home/${{ secrets.SERVER_USERNAME }}"
-      - name: Output SSH Connection Status
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          port: 22
-          script: echo "SSH Connection Established"
 
   deploy:
     runs-on: ubuntu-latest
@@ -48,7 +40,7 @@ jobs:
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
+          key: ${{ runner.temp }}/ssh/id_rsa
           port: 22
           script: |
             docker load < funnylittlewebsite.tar.gz
