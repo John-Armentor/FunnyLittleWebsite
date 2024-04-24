@@ -16,9 +16,9 @@ jobs:
         run: docker save funnylittlewebsite:latest | gzip > funnylittlewebsite.tar.gz
       - name: Decode SSH Key
         run: |
-          mkdir -p ${{ runner.temp }}/ssh
+          mkdir -p ${{ runner.temp }}/ssh  # Ensures the SSH directory exists
           echo "${{ secrets.SERVER_SSH_KEY_BASE64 }}" | base64 --decode > ${{ runner.temp }}/ssh/id_rsa
-          chmod 600 ${{ runner.temp }}/ssh/id_rsa
+          chmod 600 ${{ runner.temp }}/ssh/id_rsa  # Secures the SSH key
         env:
           SERVER_SSH_KEY_BASE64: ${{ secrets.SERVER_SSH_KEY_BASE64 }}
       - name: Upload Docker Image to Server
@@ -26,7 +26,7 @@ jobs:
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ runner.temp }}/ssh/id_rsa
+          key: ${{ runner.temp }}/ssh/id_rsa  # Uses the decoded SSH key
           port: 22
           source: "funnylittlewebsite.tar.gz"
           target: "/home/${{ secrets.SERVER_USERNAME }}"
@@ -40,7 +40,7 @@ jobs:
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ runner.temp }}/ssh/id_rsa
+          key: ${{ runner.temp }}/ssh/id_rsa  # Consistent use of the SSH key across steps
           port: 22
           script: |
             docker load < funnylittlewebsite.tar.gz
