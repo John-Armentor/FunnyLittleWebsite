@@ -14,6 +14,11 @@ jobs:
         run: docker build ./FunnyLittleWebsite -t funnylittlewebsite:latest
       - name: Save Docker Image
         run: docker save funnylittlewebsite:latest | gzip > funnylittlewebsite.tar.gz
+      - name: Debug SSH Key Start
+        env:
+          SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+        run: |
+          echo "SSH key first 100 characters: ${SSH_KEY:0:100}"  # Show start of the key to confirm it's loaded
       - name: Upload Docker Image to Server
         uses: appleboy/scp-action@master
         with:
@@ -23,6 +28,14 @@ jobs:
           port: 22
           source: "funnylittlewebsite.tar.gz"
           target: "/home/${{ secrets.SERVER_USERNAME }}"
+      - name: Output SSH Connection Status
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          script: echo "SSH Connection Established"
 
   deploy:
     runs-on: ubuntu-latest
