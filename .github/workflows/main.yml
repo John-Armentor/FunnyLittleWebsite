@@ -16,9 +16,9 @@ jobs:
         run: docker save funnylittlewebsite:latest | gzip > funnylittlewebsite.tar.gz
       - name: Setup SSH Key
         run: |
-          mkdir -p ${{ runner.home }}/.ssh
-          echo "${{ secrets.SERVER_SSH_KEY }}" > ${{ runner.home }}/.ssh/id_rsa
-          chmod 600 ${{ runner.home }}/.ssh/id_rsa
+          mkdir -p $HOME/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > $HOME/.ssh/id_rsa
+          chmod 600 $HOME/.ssh/id_rsa
       - name: Upload Docker Image to Server
         uses: appleboy/scp-action@master
         with:
