@@ -17,14 +17,18 @@ jobs:
       - name: Setup SSH Key
         run: |
           mkdir -p $HOME/.ssh
-          echo "${{ secrets.SERVER_SSH_KEY }}" > $HOME/.ssh/id_rsa
-          chmod 600 $HOME/.ssh/id_rsa
+          echo "${{ secrets.SERVER_SSH_KEY }}" > $HOME/.ssh/github_actions_rsa
+          chmod 600 $HOME/.ssh/github_actions_rsa
+      - name: Debug SSH Key Permissions
+        run: |
+          ls -la $HOME/.ssh/
+          cat $HOME/.ssh/github_actions_rsa | head -n 1
       - name: Upload Docker Image to Server
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USERNAME }}
-          key: $HOME/.ssh/id_rsa
+          key: $HOME/.ssh/github_actions_rsa
           port: 22
           source: "funnylittlewebsite.tar.gz"
           target: "/home/${{ secrets.SERVER_USERNAME }}"
@@ -38,10 +42,11 @@ jobs:
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USERNAME }}
-          key: $HOME/.ssh/id_rsa
+          key: $HOME/.ssh/github_actions_rsa
           port: 22
           script: |
             docker load < funnylittlewebsite.tar.gz
             docker stop funnylittlewebsite || true
             docker rm funnylittlewebsite || true
             docker run -d --name funnylittlewebsite -p 80:80 funnylittlewebsite:latest
+
