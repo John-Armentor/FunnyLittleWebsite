@@ -24,6 +24,7 @@ jobs:
           chmod 600 $HOME/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.HOST }} >> $HOME/.ssh/known_hosts
 
+
       - name: Deploy to Server
         uses: appleboy/ssh-action@v1.0.3
         with:
