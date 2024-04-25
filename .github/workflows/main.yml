@@ -10,8 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-        with:
-          arch: aarch64
 
       - name: Build Docker Image
         run: docker build --platform linux/arm64/v8 ./FunnyLittleWebsite -t funnylittlewebsite:latest
