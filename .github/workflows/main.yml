@@ -10,24 +10,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      
+      - name: Set up Docker Buildx
+        run: |
+          docker buildx create --use
 
-      - name: Build Docker Image
-        run: docker build ./FunnyLittleWebsite -t funnylittlewebsite:latest
+      - name: Build Docker Image for ARM64
+        run: |
+          docker buildx build --platform linux/arm64 -t funnylittlewebsite:latest ./FunnyLittleWebsite --load
 
       - name: Save Docker Image
-        run: docker save funnylittlewebsite:latest | gzip > funnylittlewebsite.tar.gz
+        run: |
+          docker save funnylittlewebsite:latest | gzip > funnylittlewebsite.tar.gz
 
       - name: Setup SSH Key
         run: |
           mkdir -p $HOME/.ssh
           echo "${{ secrets.SERVER_SSH_KEY }}" > $HOME/.ssh/github_actions_rsa
           chmod 600 $HOME/.ssh/github_actions_rsa
-          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> $HOME/.ssh/known_hosts
 
       - name: Upload Docker Image to Server
-        run: scp -i $HOME/.ssh/github_actions_rsa funnylittlewebsite.tar.gz server1admin@${{ secrets.SERVER_IP }}:/home/server1admin/
+        run: |
+          scp -i $HOME/.ssh/github_actions_rsa funnylittlewebsite.tar.gz server1admin@${{ secrets.SERVER_IP }}:/home/server1admin/
 
-      - name: Deploy on Server
+      - name: Load and Run Docker Image on Server
         run: |
           ssh -i $HOME/.ssh/github_actions_rsa server1admin@${{ secrets.SERVER_IP }} "
             docker load < /home/server1admin/funnylittlewebsite.tar.gz
