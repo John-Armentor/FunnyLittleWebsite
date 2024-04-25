@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build:
+  build_and_deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -19,38 +19,20 @@ jobs:
 
       - name: Setup SSH Key
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+          mkdir -p ${{ runner.home }}/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ${{ runner.home }}/.ssh/id_rsa
+          chmod 600 ${{ runner.home }}/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ${{ runner.home }}/.ssh/known_hosts
 
-      - name: Test SSH Connection
-        run: ssh -vT -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no server1admin@${{ secrets.SERVER_IP }}
-
-      - name: Upload Docker Image to Server
-        uses: appleboy/scp-action@master
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_IP }}
           username: server1admin
-          key: ${{ github.workspace }}/.ssh/id_rsa
-          port: 22
-          source: "funnylittlewebsite.tar.gz"
-          target: "/home/server1admin/"
-          rm: true
-          debug: true
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Deploy on Server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: server1admin
-          key: ${{ github.workspace }}/.ssh/id_rsa
+          key: ${{ runner.home }}/.ssh/id_rsa
           port: 22
           script: |
+            set -e
             docker load < /home/server1admin/funnylittlewebsite.tar.gz
             docker stop funnylittlewebsite || true
             docker rm funnylittlewebsite || true
