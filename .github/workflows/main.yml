@@ -5,6 +5,11 @@ on:
     branches:
       - main
 
+env:
+  DOCKER_IMAGE_NAME: funnylittlewebsite:latest
+  SSH_KEY_PATH: ${{ github.workspace }}/.ssh/github_actions_rsa
+  DEPLOYMENT_PATH: /home/server1admin/
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -12,30 +17,30 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Build Docker Image
-        run: docker build ./FunnyLittleWebsite -t funnylittlewebsite:latest
+        run: docker build ./FunnyLittleWebsite -t $DOCKER_IMAGE_NAME
 
       - name: Save Docker Image
-        run: docker save funnylittlewebsite:latest | gzip > funnylittlewebsite.tar.gz
+        run: docker save $DOCKER_IMAGE_NAME | gzip > funnylittlewebsite.tar.gz
 
-      - name: Setup SSH Key
+      - name: Setup SSH Key and Known Hosts
         run: |
-          mkdir -p $HOME/.ssh
-          echo "${{ secrets.SERVER_SSH_KEY }}" > $HOME/.ssh/github_actions_rsa
-          chmod 600 $HOME/.ssh/github_actions_rsa
-          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> $HOME/.ssh/known_hosts
+          mkdir -p ${{ github.workspace }}/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > $SSH_KEY_PATH
+          chmod 600 $SSH_KEY_PATH
+          ssh-keyscan -t rsa ${{ secrets.SERVER_IP }} >> ${{ github.workspace }}/.ssh/known_hosts
 
       - name: Test SSH Connection
-        run: ssh -vT -i $HOME/.ssh/github_actions_rsa -o StrictHostKeyChecking=no server1admin@${{ secrets.SERVER_IP }}
+        run: ssh -vT -i $SSH_KEY_PATH -o StrictHostKeyChecking=no server1admin@${{ secrets.SERVER_IP }}
 
       - name: Upload Docker Image to Server
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SERVER_IP }}
           username: server1admin
-          key: ${{ runner.home }}/.ssh/github_actions_rsa
+          key: $SSH_KEY_PATH
           port: 22
           source: "funnylittlewebsite.tar.gz"
-          target: "/home/server1admin/"
+          target: $DEPLOYMENT_PATH
           rm: true
           debug: true
 
@@ -48,10 +53,10 @@ jobs:
         with:
           host: ${{ secrets.SERVER_IP }}
           username: server1admin
-          key: ${{ runner.home }}/.ssh/github_actions_rsa
+          key: $SSH_KEY_PATH
           port: 22
           script: |
-            docker load < /home/server1admin/funnylittlewebsite.tar.gz
+            docker load < ${DEPLOYMENT_PATH}funnylittlewebsite.tar.gz
             docker stop funnylittlewebsite || true
             docker rm funnylittlewebsite || true
-            docker run -d --name funnylittlewebsite -p 80:80 funnylittlewebsite:latest
+            docker run -d --name funnylittlewebsite -p 80:80 $DOCKER_IMAGE_NAME
