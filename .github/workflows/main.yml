@@ -22,26 +22,22 @@ jobs:
           mkdir -p $HOME/.ssh
           echo "${{ secrets.SERVER_SSH_KEY }}" > $HOME/.ssh/github_actions_rsa
           chmod 600 $HOME/.ssh/github_actions_rsa
-          ssh-keygen -y -f $HOME/.ssh/github_actions_rsa
-          ls -la $HOME/.ssh
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> $HOME/.ssh/known_hosts
 
       - name: Test SSH Connection
         run: ssh -vT -i $HOME/.ssh/github_actions_rsa -o StrictHostKeyChecking=no server1admin@${{ secrets.SERVER_IP }}
-
-      - name: Check File Size
-        run: ls -lh funnylittlewebsite.tar.gz
 
       - name: Upload Docker Image to Server
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SERVER_IP }}
           username: server1admin
-          key: $HOME/.ssh/github_actions_rsa
+          key: ${{ runner.home }}/.ssh/github_actions_rsa
           port: 22
           source: "funnylittlewebsite.tar.gz"
           target: "/home/server1admin/"
-          rm: true  # Remove source files after transfer
-          debug: true  # Enable detailed logging
+          rm: true
+          debug: true
 
   deploy:
     runs-on: ubuntu-latest
@@ -52,10 +48,10 @@ jobs:
         with:
           host: ${{ secrets.SERVER_IP }}
           username: server1admin
-          key: $HOME/.ssh/github_actions_rsa
+          key: ${{ runner.home }}/.ssh/github_actions_rsa
           port: 22
           script: |
-            docker load < funnylittlewebsite.tar.gz
+            docker load < /home/server1admin/funnylittlewebsite.tar.gz
             docker stop funnylittlewebsite || true
             docker rm funnylittlewebsite || true
             docker run -d --name funnylittlewebsite -p 80:80 funnylittlewebsite:latest
