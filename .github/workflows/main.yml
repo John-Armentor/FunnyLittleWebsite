@@ -10,19 +10,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Build Docker Image
-        run: docker build ./FunnyLittleWebsite -t funnylittlewebsite:latest
-      - name: Save Docker Image
-        run: docker save funnylittlewebsite:latest | gzip > funnylittlewebsite.tar.gz
+      
       - name: Setup SSH Key
         run: |
           mkdir -p $HOME/.ssh
           echo "${{ secrets.SERVER_SSH_KEY }}" > $HOME/.ssh/github_actions_rsa
           chmod 600 $HOME/.ssh/github_actions_rsa
-          ssh-keygen -y -f $HOME/.ssh/github_actions_rsa
+          
+      - name: Setup Known Hosts
+        run: |
+          ssh-keyscan -t rsa ${{ secrets.SERVER_IP }} >> $HOME/.ssh/known_hosts
+          
       - name: Test SSH Connection
         run: ssh -vT -i $HOME/.ssh/github_actions_rsa server1admin@${{ secrets.SERVER_IP }}
-        continue-on-error: true
+        
       - name: Upload Docker Image to Server
         uses: appleboy/scp-action@master
         with:
@@ -49,3 +50,4 @@ jobs:
             docker stop funnylittlewebsite || true
             docker rm funnylittlewebsite || true
             docker run -d --name funnylittlewebsite -p 80:80 funnylittlewebsite:latest
+
