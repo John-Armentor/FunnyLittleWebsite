@@ -17,13 +17,12 @@ jobs:
       - name: Save Docker Image
         run: docker save funnylittlewebsite:latest | gzip > funnylittlewebsite.tar.gz
 
-      - name: Setup SSH Key
+      - name: Setup SSH Directory and Key
         run: |
-          mkdir -p ${{ runner.home }}/.ssh
-          echo "${{ secrets.SERVER_SSH_KEY }}" > ${{ runner.home }}/.ssh/id_rsa
-          chmod 600 ${{ runner.home }}/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ${{ runner.home }}/.ssh/known_hosts
-
+          mkdir -p $HOME/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > $HOME/.ssh/id_rsa
+          chmod 600 $HOME/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.HOST }} >> $HOME/.ssh/known_hosts
 
       - name: Deploy to Server
         uses: appleboy/ssh-action@v1.0.3
