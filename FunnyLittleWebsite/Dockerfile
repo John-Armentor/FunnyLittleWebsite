@@ -10,7 +10,9 @@ WORKDIR /src
 COPY ["FunnyLittleWebsite.csproj", "./"]
 RUN dotnet restore "FunnyLittleWebsite.csproj"
 COPY . .
-RUN dotnet build "FunnyLittleWebsite.csproj" -c Release -o /app/build
+#RUN dotnet build "FunnyLittleWebsite.csproj" -c Release -o /app/build
+RUN dotnet build "FunnyLittleWebsite.csproj"
+
 
 FROM build AS publish
 RUN dotnet publish "FunnyLittleWebsite.csproj" -c Release -o /app/publish /p:UseAppHost=false
