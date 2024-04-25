@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build_and_deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -17,23 +17,39 @@ jobs:
       - name: Save Docker Image
         run: docker save funnylittlewebsite:latest | gzip > funnylittlewebsite.tar.gz
 
-      - name: Setup SSH Directory and Key
+      - name: Setup SSH Key
         run: |
           mkdir -p $HOME/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > $HOME/.ssh/id_rsa
-          chmod 600 $HOME/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.HOST }} >> $HOME/.ssh/known_hosts
+          echo "${{ secrets.SERVER_SSH_KEY }}" > $HOME/.ssh/github_actions_rsa
+          chmod 600 $HOME/.ssh/github_actions_rsa
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> $HOME/.ssh/known_hosts
 
+      - name: Test SSH Connection
+        run: ssh -vT -i $HOME/.ssh/github_actions_rsa -o StrictHostKeyChecking=no server1admin@${{ secrets.SERVER_IP }}
+        continue-on-error: true
 
-      - name: Deploy to Server
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Upload Docker Image to Server
+        uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SERVER_IP }}
           username: server1admin
-          key: ${{ runner.home }}/.ssh/id_rsa
+          key: /home/runner/.ssh/github_actions_rsa
+          port: 22
+          source: "funnylittlewebsite.tar.gz"
+          target: "/home/server1admin/"
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy on Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: server1admin
+          key: /home/runner/.ssh/github_actions_rsa
           port: 22
           script: |
-            set -e
             docker load < /home/server1admin/funnylittlewebsite.tar.gz
             docker stop funnylittlewebsite || true
             docker rm funnylittlewebsite || true
