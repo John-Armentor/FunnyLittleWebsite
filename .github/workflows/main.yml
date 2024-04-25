@@ -24,7 +24,7 @@ jobs:
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ runner.home }}/.ssh/id_rsa
+          key: $HOME/.ssh/id_rsa
           port: 22
           source: "funnylittlewebsite.tar.gz"
           target: "/home/${{ secrets.SERVER_USERNAME }}"
@@ -38,7 +38,7 @@ jobs:
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ runner.home }}/.ssh/id_rsa
+          key: $HOME/.ssh/id_rsa
           port: 22
           script: |
             docker load < funnylittlewebsite.tar.gz
