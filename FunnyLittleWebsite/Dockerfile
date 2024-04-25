@@ -13,6 +13,7 @@ COPY . .
 RUN dotnet build "FunnyLittleWebsite.csproj" -c Release -o /app/build
 
 FROM build AS publish
+#RUN dotnet publish "FunnyLittleWebsite.csproj" -c Release -o /app/publish /p:UseAppHost=false
 RUN dotnet publish "FunnyLittleWebsite.csproj" -c Release -o /app/publish
 
 
