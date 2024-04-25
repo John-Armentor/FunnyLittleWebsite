@@ -5,7 +5,7 @@ EXPOSE 8080
 EXPOSE 8081
 
 # Use the SDK image to build the code
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0-bullseye-slim-arm64v8 AS build
 WORKDIR /src
 COPY ["FunnyLittleWebsite.csproj", "./"]
 RUN dotnet restore "FunnyLittleWebsite.csproj"
@@ -16,7 +16,7 @@ FROM build AS publish
 RUN dotnet publish "FunnyLittleWebsite.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Build the final image
-FROM base AS final
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-bullseye-slim-arm64v8 AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "FunnyLittleWebsite.dll"]
