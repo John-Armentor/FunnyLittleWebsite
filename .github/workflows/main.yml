@@ -6,37 +6,33 @@ on:
       - main
 
 jobs:
-  build:
+  build_and_deploy:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Build Docker Image
-      run: docker build . -t funnylittlewebsite:latest
-    - name: Save Docker Image
-      run: docker save funnylittlewebsite:latest | gzip > funnylittlewebsite.tar.gz
-    - name: Upload Docker Image to Server
-      uses: appleboy/scp-action@master
-      with:
-        host: ${{ secrets.SERVER_IP }}
-        username: ${{ secrets.SERVER_USERNAME }}
-        key: ${{ secrets.SERVER_SSH_KEY }}
-        port: 22
-        source: "funnylittlewebsite.tar.gz"
-        target: "/home/${{ secrets.SERVER_USERNAME }}"
+      - uses: actions/checkout@v2
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-    - name: Deploy on Server
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.SERVER_IP }}
-        username: ${{ secrets.SERVER_USERNAME }}
-        key: ${{ secrets.SERVER_SSH_KEY }}
-        port: 22
-        script: |
-          docker load < funnylittlewebsite.tar.gz
-          docker stop funnylittlewebsite || true
-          docker rm funnylittlewebsite || true
-          docker run -d --name funnylittlewebsite -p 80:80 funnylittlewebsite:latest
+      - name: Build Docker Image
+        run: docker build --platform linux/arm64/v8 ./FunnyLittleWebsite -t funnylittlewebsite:latest
+
+
+      - name: Save Docker Image
+        run: docker save funnylittlewebsite:latest | gzip > funnylittlewebsite.tar.gz
+
+      - name: Setup SSH Key
+        run: |
+          mkdir -p $HOME/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > $HOME/.ssh/github_actions_rsa
+          chmod 600 $HOME/.ssh/github_actions_rsa
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> $HOME/.ssh/known_hosts
+
+      - name: Upload Docker Image to Server
+        run: scp -i $HOME/.ssh/github_actions_rsa funnylittlewebsite.tar.gz server1admin@${{ secrets.SERVER_IP }}:/home/server1admin/
+
+      - name: Deploy on Server
+        run: |
+          ssh -i $HOME/.ssh/github_actions_rsa server1admin@${{ secrets.SERVER_IP }} "
+            docker load < /home/server1admin/funnylittlewebsite.tar.gz
+            docker stop funnylittlewebsite || true
+            docker rm funnylittlewebsite || true
+            docker run -d --name funnylittlewebsite -p 80:80 funnylittlewebsite:latest
+          "
