@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Build Docker Image
-        run: docker build ./FunnyLittleWebsite -t funnylittlewebsite:latest
+        run: docker build --platform linux/arm64/v8 ./FunnyLittleWebsite -t funnylittlewebsite:latest
 
 
       - name: Save Docker Image
