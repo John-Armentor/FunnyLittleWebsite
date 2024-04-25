@@ -13,8 +13,7 @@ COPY . .
 RUN dotnet build "FunnyLittleWebsite.csproj" -c Release -o /app/build
 
 FROM build AS publish
-#RUN dotnet publish "FunnyLittleWebsite.csproj" -c Release -o /app/publish /p:UseAppHost=false
-RUN dotnet publish "FunnyLittleWebsite.csproj" -c Release -o /app/publish
+RUN dotnet publish "FunnyLittleWebsite.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 
 # Build the final image, using the ASP.NET Core runtime
