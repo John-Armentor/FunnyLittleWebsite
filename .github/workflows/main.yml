@@ -10,12 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      
-      - name: Set up Docker Buildx
-        run: docker buildx create --use
 
-      - name: Build Docker Image for ARM64
-        run: docker buildx build --platform linux/arm64 -t funnylittlewebsite:latest ./FunnyLittleWebsite --load
+      - name: Build Docker Image
+        run: docker build ./FunnyLittleWebsite -t funnylittlewebsite:latest
 
       - name: Save Docker Image
         run: docker save funnylittlewebsite:latest | gzip > funnylittlewebsite.tar.gz
