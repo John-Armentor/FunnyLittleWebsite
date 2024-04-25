@@ -11,28 +11,34 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
+      # Set up Docker Buildx
       - name: Set up Docker Buildx
         run: |
           docker buildx create --use
 
+      # Build Docker Image for ARM64
       - name: Build Docker Image for ARM64
         run: |
           docker buildx build --platform linux/arm64 -t funnylittlewebsite:latest ./FunnyLittleWebsite --load
 
+      # Save Docker Image
       - name: Save Docker Image
         run: |
           docker save funnylittlewebsite:latest | gzip > funnylittlewebsite.tar.gz
 
+      # Setup SSH Key
       - name: Setup SSH Key
         run: |
           mkdir -p $HOME/.ssh
           echo "${{ secrets.SERVER_SSH_KEY }}" > $HOME/.ssh/github_actions_rsa
           chmod 600 $HOME/.ssh/github_actions_rsa
 
+      # Upload Docker Image to Server
       - name: Upload Docker Image to Server
         run: |
           scp -i $HOME/.ssh/github_actions_rsa funnylittlewebsite.tar.gz server1admin@${{ secrets.SERVER_IP }}:/home/server1admin/
 
+      # Load and Run Docker Image on Server
       - name: Load and Run Docker Image on Server
         run: |
           ssh -i $HOME/.ssh/github_actions_rsa server1admin@${{ secrets.SERVER_IP }} "
