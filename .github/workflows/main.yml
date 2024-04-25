@@ -19,19 +19,19 @@ jobs:
           mkdir -p $HOME/.ssh
           echo "${{ secrets.SERVER_SSH_KEY }}" > $HOME/.ssh/github_actions_rsa
           chmod 600 $HOME/.ssh/github_actions_rsa
-      - name: Debug SSH Key Permissions
-        run: |
-          ls -la $HOME/.ssh/
-          cat $HOME/.ssh/github_actions_rsa | head -n 1
+          ssh-keygen -y -f $HOME/.ssh/github_actions_rsa
+      - name: Test SSH Connection
+        run: ssh -vT -i $HOME/.ssh/github_actions_rsa server1admin@${{ secrets.SERVER_IP }}
+        continue-on-error: true
       - name: Upload Docker Image to Server
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USERNAME }}
+          username: server1admin
           key: $HOME/.ssh/github_actions_rsa
           port: 22
           source: "funnylittlewebsite.tar.gz"
-          target: "/home/${{ secrets.SERVER_USERNAME }}"
+          target: "/home/server1admin/"
 
   deploy:
     runs-on: ubuntu-latest
@@ -41,7 +41,7 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USERNAME }}
+          username: server1admin
           key: $HOME/.ssh/github_actions_rsa
           port: 22
           script: |
@@ -49,4 +49,3 @@ jobs:
             docker stop funnylittlewebsite || true
             docker rm funnylittlewebsite || true
             docker run -d --name funnylittlewebsite -p 80:80 funnylittlewebsite:latest
-
