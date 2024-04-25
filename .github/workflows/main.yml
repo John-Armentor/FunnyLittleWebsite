@@ -11,13 +11,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Build Docker Image for ARM64
-        run: |
-          docker buildx create --use
-          docker buildx build --platform linux/arm64/v8 -t funnylittlewebsite:latest ./FunnyLittleWebsite --load --push
+      - name: Build Docker Image
+        run: docker build ./FunnyLittleWebsite -t funnylittlewebsite:latest
 
 
       - name: Save Docker Image
