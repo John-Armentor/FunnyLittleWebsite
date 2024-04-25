@@ -10,12 +10,12 @@ WORKDIR /src
 COPY ["FunnyLittleWebsite.csproj", "./"]
 RUN dotnet restore "FunnyLittleWebsite.csproj"
 COPY . .
-#RUN dotnet build "FunnyLittleWebsite.csproj" -c Release -o /app/build
-RUN dotnet build "FunnyLittleWebsite.csproj"
-
+RUN dotnet build "FunnyLittleWebsite.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "FunnyLittleWebsite.csproj" -c Release -o /app/publish /p:UseAppHost=false
+#RUN dotnet publish "FunnyLittleWebsite.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "FunnyLittleWebsite.csproj" -c Release -o /app/publish
+
 
 # Build the final image, using the ASP.NET Core runtime
 FROM base AS final
