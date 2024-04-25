@@ -1,8 +1,7 @@
 # Use the official ASP.NET Core runtime image from Microsoft Container Registry, ensure it's suitable for ARM64
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy-arm64v8 AS base
 WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
+EXPOSE 80
 
 # Use the .NET Core SDK image to build the code, ensure it's suitable for ARM64
 FROM mcr.microsoft.com/dotnet/sdk:8.0-jammy-arm64v8 AS build

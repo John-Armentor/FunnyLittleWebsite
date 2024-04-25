@@ -2,6 +2,9 @@ using FunnyLittleWebsite.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure Kestrel server to listen on port 80
+builder.WebHost.UseUrls("http://*:80");
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -16,7 +19,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 app.UseAntiforgery();
