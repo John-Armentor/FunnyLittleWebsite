@@ -8,10 +8,10 @@ EXPOSE 443
 # Use the .NET Core SDK image to build the code.
 FROM mcr.microsoft.com/dotnet/sdk:8.0-jammy AS build
 WORKDIR /src
-COPY ["FunnyLittleWebsite/FunnyLittleWebsite/FunnyLittleWebsite.csproj", "./"]
+COPY ["FunnyLittleWebsite/FunnyLittleWebsite.csproj", "./"]
 RUN dotnet restore "FunnyLittleWebsite.csproj"
 # Copy the rest of the source code
-COPY ["FunnyLittleWebsite/FunnyLittleWebsite/", "./"]
+COPY FunnyLittleWebsite/ .
 RUN dotnet build "FunnyLittleWebsite.csproj" -c Release -o /app/build
 
 FROM build AS publish
