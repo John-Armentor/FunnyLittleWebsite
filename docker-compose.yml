@@ -1,0 +1,21 @@
+﻿version: '3.8'
+services:
+  funnylittlewebsite:
+    image: funnylittlewebsite:latest
+    build:
+      context: .
+      dockerfile: FunnyLittleWebsite/Dockerfile
+    ports:
+      - "5252:443"  # Map your local development port to the container's port 443
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443
+      - ASPNETCORE_Kestrel__Certificates__Default__Password="YOUR_CERTIFICATE_PASSWORD"
+      - ASPNETCORE_Kestrel__Certificates__Default__Path="/https/cert.pfx"
+    volumes:
+      - .:/app  # Optional: Mount the current directory to /app for live code changes
+    networks:
+      - webnet
+
+networks:
+  webnet:

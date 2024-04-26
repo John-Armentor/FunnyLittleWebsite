@@ -35,5 +35,5 @@ jobs:
             docker load < /home/server1admin/funnylittlewebsite.tar.gz
             docker stop funnylittlewebsite || true
             docker rm funnylittlewebsite || true
-            docker run -d --name funnylittlewebsite -p 80:80 funnylittlewebsite:latest
+            docker run -d --name funnylittlewebsite -p 443:443 funnylittlewebsite:latest
           "
