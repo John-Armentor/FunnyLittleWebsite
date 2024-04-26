@@ -45,10 +45,10 @@ jobs:
         env:
           CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
         run: |
-          ssh -i $HOME/.ssh/github_actions_rsa ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_IP }} "
-            docker pull ${{ secrets.DOCKER_USERNAME }}/funnylittlewebsite:latest
-            docker stop funnylittlewebsite || true
-            docker rm funnylittlewebsite || true
+          ssh -i $HOME/.ssh/github_actions_rsa ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_IP }} "\
+            docker pull ${{ secrets.DOCKER_USERNAME }}/funnylittlewebsite:latest && \
+            docker stop funnylittlewebsite || true && \
+            docker rm funnylittlewebsite || true && \
             docker run -d \
               --name funnylittlewebsite \
               -p 5252:443 \
@@ -56,6 +56,5 @@ jobs:
               -e ASPNETCORE_URLS=https://+:443 \
               -e ASPNETCORE_Kestrel__Certificates__Default__Password=${CERTIFICATE_PASSWORD} \
               -e ASPNETCORE_Kestrel__Certificates__Default__Path=/certs/certificate.pfx \
-              -v myapp_certs:/certs  # Correctly mount the volume containing the certificate
-              ${{ secrets.DOCKER_USERNAME }}/funnylittlewebsite:latest
-          "
+              -v myapp_certs:/certs \
+              ${{ secrets.DOCKER_USERNAME }}/funnylittlewebsite:latest"
