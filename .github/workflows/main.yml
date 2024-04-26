@@ -32,7 +32,7 @@ jobs:
           tags: ${{ secrets.DOCKER_USERNAME }}/funnylittlewebsite:latest
           platforms: linux/arm64
           build-args: |
-            BUILD_COMMAND="dotnet build -c Release -o /app/build -verbosity detailed"
+            BUILD_COMMAND="dotnet build -c Release -o /app/build"
 
       - name: Setup SSH Key
         run: |
