@@ -30,7 +30,7 @@ jobs:
           file: ./FunnyLittleWebsite/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/funnylittlewebsite:latest
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/arm64
 
       - name: Setup SSH Key
         run: |
