@@ -6,16 +6,19 @@ services:
       context: .
       dockerfile: FunnyLittleWebsite/Dockerfile
     ports:
-      - "5252:443"  # Map your local development port to the container's port 443
+      - "5252:443"  # Map your external port to the container's HTTPS port
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:443
-      - ASPNETCORE_Kestrel__Certificates__Default__Password="YOUR_CERTIFICATE_PASSWORD"
-      - ASPNETCORE_Kestrel__Certificates__Default__Path="/https/cert.pfx"
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=${CERTIFICATE_PASSWORD}  # Use environment variable
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/certs/certificate.pfx
     volumes:
-      - .:/app  # Optional: Mount the current directory to /app for live code changes
+      - myapp_certs:/certs  # Mount the volume containing the certificate
+      - .:/app  # Mount the source code for live changes (optional in production)
     networks:
       - webnet
 
 networks:
   webnet:
+volumes:
+  myapp_certs:  # Define the volume to be used for storing certificates

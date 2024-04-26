@@ -15,7 +15,7 @@ jobs:
         run: |
           docker buildx create --use
           docker buildx build --platform linux/arm64 --load -t funnylittlewebsite:latest ./FunnyLittleWebsite
-      
+
       - name: Save Docker Image
         run: docker save funnylittlewebsite:latest | gzip > funnylittlewebsite.tar.gz
 
@@ -30,10 +30,13 @@ jobs:
         run: scp -i $HOME/.ssh/github_actions_rsa funnylittlewebsite.tar.gz server1admin@${{ secrets.SERVER_IP }}:/home/server1admin/
 
       - name: Deploy on Server
+        env:
+          CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
         run: |
           ssh -i $HOME/.ssh/github_actions_rsa server1admin@${{ secrets.SERVER_IP }} "
             docker load < /home/server1admin/funnylittlewebsite.tar.gz
             docker stop funnylittlewebsite || true
             docker rm funnylittlewebsite || true
-            docker run -d --name funnylittlewebsite -p 443:443 funnylittlewebsite:latest
+            docker compose -f /path/to/docker-compose.yml up -d
           "
+
