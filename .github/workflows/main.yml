@@ -11,13 +11,26 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Build Docker Image
-        run: |
-          docker buildx create --use
-          docker buildx build --platform linux/arm64 --load -t funnylittlewebsite:latest ./FunnyLittleWebsite
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
 
-      - name: Save Docker Image
-        run: docker save funnylittlewebsite:latest | gzip > funnylittlewebsite.tar.gz
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./FunnyLittleWebsite/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/funnylittlewebsite:latest
+          platforms: linux/amd64,linux/arm64
 
       - name: Setup SSH Key
         run: |
@@ -26,17 +39,16 @@ jobs:
           chmod 600 $HOME/.ssh/github_actions_rsa
           ssh-keyscan -H ${{ secrets.SERVER_IP }} >> $HOME/.ssh/known_hosts
 
-      - name: Upload Docker Image to Server
-        run: scp -i $HOME/.ssh/github_actions_rsa funnylittlewebsite.tar.gz server1admin@${{ secrets.SERVER_IP }}:/home/server1admin/
-
       - name: Deploy on Server
         env:
           CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
         run: |
-          ssh -i $HOME/.ssh/github_actions_rsa server1admin@${{ secrets.SERVER_IP }} "
-            docker load < /home/server1admin/funnylittlewebsite.tar.gz
+          ssh -i $HOME/.ssh/github_actions_rsa ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_IP }} "
+            docker pull ${{ secrets.DOCKER_USERNAME }}/funnylittlewebsite:latest
             docker stop funnylittlewebsite || true
             docker rm funnylittlewebsite || true
-            docker compose -f /path/to/docker-compose.yml up -d
+            docker run -d --name funnylittlewebsite -p 5252:443 -e ASPNETCORE_ENVIRONMENT=Production \
+              -e ASPNETCORE_URLS=https://+:443 -e ASPNETCORE_Kestrel__Certificates__Default__Password=${CERTIFICATE_PASSWORD} \
+              -e ASPNETCORE_Kestrel__Certificates__Default__Path=/https/cert.pfx \
+              ${{ secrets.DOCKER_USERNAME }}/funnylittlewebsite:latest
           "
-
