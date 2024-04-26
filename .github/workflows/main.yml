@@ -51,7 +51,7 @@ jobs:
             docker rm funnylittlewebsite || true && \
             docker run -d \
               --name funnylittlewebsite \
-              -p 5252:443 \
+              -p 443:443 \
               -e ASPNETCORE_ENVIRONMENT=Production \
               -e ASPNETCORE_URLS=https://+:443 \
               -e ASPNETCORE_Kestrel__Certificates__Default__Password=${CERTIFICATE_PASSWORD} \
